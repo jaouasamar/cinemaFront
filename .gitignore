@@ -35,11 +35,6 @@ chrome-profiler-events*.json
 /connect.lock
 /coverage
 /libpeerconnection.log
-npm-debug.log
-yarn-error.log
-testem.log
-/typings
-
-# System Files
+npm-debug.logg
 .DS_Store
 Thumbs.db
