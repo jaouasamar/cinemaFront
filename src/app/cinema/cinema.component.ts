@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { CinemaService } from '../services/cinema.service';
 
 @Component({
   selector: 'app-cinema',
@@ -8,12 +9,20 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CinemaComponent implements OnInit {
 
-  public villes: Object | undefined;
+  public villes:any;
+  public cinemas:any;
+  public salles:any;
+  public currentVille: any;
+  public currentCinema: any;
+  public currentProjection:any;
+  public currentSeance:any;
+  public selectedTickets:[] | undefined;
 
-  constructor(private http:HttpClient) { }
+  constructor(public cinemaService:CinemaService) { }
 
   ngOnInit(): void {
-    this.http.get("/localhost:8070/villes").subscribe
+    this.cinemaService.getVilles()
+    .subscribe
     (
       data=>{
         this.villes=data;
@@ -24,4 +33,70 @@ export class CinemaComponent implements OnInit {
       });
   }
 
-}
+  onGetCinemas(v: any){
+    this.currentVille=v;
+    this.salles=undefined;
+    this.cinemaService.getCinemas(v)
+    .subscribe
+    (
+      data=>{
+        this.cinemas=data;
+
+    },
+      err=>{
+        console.log(err);
+      });
+  }
+
+  onGetSalles(c:any){
+    this.currentCinema=c;
+    this.cinemaService.getSalles(c)
+    .subscribe
+    (
+      data=>{
+        this.salles=data;
+        this.salles._embedded.salles?.forEach((salle: { projections: Object; }) => {
+          this.cinemaService.getProjections(salle)
+          .subscribe
+          (
+            data=>{
+              salle.projections=data;
+
+          },
+            err=>{
+              console.log(err);
+            });
+        });
+    },
+      err=>{
+        console.log(err);
+      });
+  }
+  onGetTicketsPlaces(p: any)
+  {
+    this.currentProjection=p;
+    this.cinemaService.getPlaces(p)
+    .subscribe
+    (
+      data=>{
+        this.currentProjection.tickets=data
+
+
+    },
+      err=>{
+        console.log(err);
+      });
+
+  }
+  onSelectTicket(t:any)
+  {
+    this.selectedTickets?.push(t);
+
+  }
+
+  }
+
+
+
+
+
