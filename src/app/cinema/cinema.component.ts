@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { analyzeAndValidateNgModules } from '@angular/compiler';
 import { Component, OnInit } from '@angular/core';
 import { CinemaService } from '../services/cinema.service';
 
@@ -16,7 +17,7 @@ export class CinemaComponent implements OnInit {
   public currentCinema: any;
   public currentProjection:any;
   public currentSeance:any;
-  public selectedTickets:[] | undefined;
+  public selectedTickets:any;
 
   constructor(public cinemaService:CinemaService) { }
 
@@ -75,11 +76,12 @@ export class CinemaComponent implements OnInit {
   onGetTicketsPlaces(p: any)
   {
     this.currentProjection=p;
-    this.cinemaService.getPlaces(p)
+    this.cinemaService.getTicketsPlaces(p)
     .subscribe
     (
       data=>{
         this.currentProjection.tickets=data
+        this.selectedTickets=[];
 
 
     },
@@ -90,11 +92,59 @@ export class CinemaComponent implements OnInit {
   }
   onSelectTicket(t:any)
   {
-    this.selectedTickets?.push(t);
+    if(!t.selected)
+    {
+      t.selected=true;
+      this.selectedTickets.push(t);
+    }
+    else
+    {
+      t.selected=false;
+      this.selectedTickets.splice(this.selectedTickets.indexOf(t),1);
+    }
+        console.log(this.selectedTickets)
+
 
   }
 
+  getTicketClass(t:any){
+    let str="btn ticket";
+    if(t.reserve==true)
+    {
+      str+=" btn-danger";
+    }
+    else if(t.selected)
+    {
+      str+=" btn-warning";
+    }
+    else
+    {
+      str+=" btn-success";
+    }
+    return str;
+
   }
+  onPayTickets(dataForm: any)
+  {
+    let tickets:any = [];
+    this.selectedTickets.forEach((t: { id: any; })=>{
+      tickets.push(t.id);
+    });
+    dataForm.tickets = tickets;
+   this.cinemaService.payerTickets(dataForm)
+    .subscribe(data=>{
+      alert("Tickets Réservés avec succès!");
+      this.onGetTicketsPlaces(this.currentProjection);
+    },err=>{
+      console.log(err);
+    }
+    );
+
+  }
+}
+
+
+
 
 
 
